@@ -36,7 +36,7 @@ iex> AutoLinker.link("google.com", new_window: false, rel: false, class: false)
 "<a href='http://google.com'>google.com</a>"
 ```
 
-See the docs for more examples
+See the [Docs](https://hexdocs.pm/auto_linker/) for more examples
 
 ## License
 
