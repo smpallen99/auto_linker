@@ -1,9 +1,9 @@
 # AutoLinker
 
-[![Build Status](https://travis-ci.org/smpallen99/coherence.png?branch=master)](https://travis-ci.org/smpallen99/coherence) [![Hex Version][hex-img]][hex] [![License][license-img]][license]
+[![Build Status](https://travis-ci.org/smpallen99/auto_linker.png?branch=master)](https://travis-ci.org/smpallen99/auto_linker) [![Hex Version][hex-img]][hex] [![License][license-img]][license]
 
-[hex-img]: https://img.shields.io/hexpm/v/coherence.svg
-[hex]: https://hex.pm/packages/coherence
+[hex-img]: https://img.shields.io/hexpm/v/auto_linker.svg
+[hex]: https://hex.pm/packages/auto_linker
 [license-img]: http://img.shields.io/badge/license-MIT-brightgreen.svg
 [license]: http://opensource.org/licenses/MIT
 
