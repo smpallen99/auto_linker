@@ -3,7 +3,7 @@ defmodule AutoLinker do
   Create url links from text containing urls.
 
   Turns an input string like `"Check out google.com"` into
-  `Check out `"<a href='http://google.com' target='_blank' rel='noopener noreferrer'>google.com</a>"`
+  `Check out "<a href='http://google.com' target='_blank' rel='noopener noreferrer'>google.com</a>"`
 
   ## Examples
 
@@ -21,6 +21,27 @@ defmodule AutoLinker do
 
   @doc """
   Auto link a string.
+
+  Options:
+
+  * `class: "auto-linker"` - specify the class to be added to the generated link. false to clear
+  * `rel: "noopener noreferrer"` - override the rel attribute. false to clear
+  * `new_window: true` - set to false to remove `target='_blank'` attribute
+  * `scheme: false` - Set to true to link urls with schema `http://google`
+  * `truncate: false` - Set to a number to truncate urls longer then the number. Truncated urls will end in `..`
+  * `strip_prefix: true` - Strip the scheme prefix
+  * `exclude_class: false` - Set to a class name when you don't want urls auto linked in the html of the give class
+  * `exclude_id: false` - Set to an element id when you don't want urls auto linked in the html of the give element
+  * `exclude_patterns: ["```"] - Don't link anything between the the pattern
+
+  Each of the above options can be specified when calling `link(text, opts)`
+  or can be set in the `:auto_linker's configuration. For example:
+
+       config :auto_linker,
+         class: false,
+         new_window: false
+
+  Note that passing opts to `link/2` will override the configuration settings.
   """
   def link(text, opts \\ []) do
     opts =
@@ -28,7 +49,7 @@ defmodule AutoLinker do
       |> Application.get_all_env()
       |> Keyword.merge(opts)
 
-    parse text, opts
+    parse text, Enum.into(opts, %{})
   end
 
 
