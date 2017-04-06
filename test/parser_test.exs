@@ -86,7 +86,8 @@ defmodule AutoLinker.ParserTest do
 
   def invalid_non_scheme_urls, do: [
     "invalid.com/perl.cgi?key= | web-site.com/cgi-bin/perl.cgi?key1=value1&key2",
-    "invalid."
+    "invalid.",
+    "hi..there"
   ]
 
 end

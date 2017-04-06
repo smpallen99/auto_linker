@@ -16,6 +16,11 @@ defmodule AutoLinker.Parser do
       "Check out <a href='http://google.com' class='auto-linker' target='_blank' rel='noopener noreferrer'>google.com</a>"
   """
 
+  @match_dots ~r/\.\.+/
+
+  @match_url ~r{^[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$}
+  @match_scheme ~r{^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$}
+
   def parse(text, opts \\ %{})
   def parse(text, list) when is_list(list), do: parse(text, Enum.into(list, %{}))
 
@@ -79,12 +84,18 @@ defmodule AutoLinker.Parser do
 
   @doc false
   def is_url?(buffer, true) do
-    re = ~r{^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$}
-    Regex.match? re, buffer
+    if Regex.match? @match_dots, buffer do
+      false
+    else
+      Regex.match? @match_scheme, buffer
+    end
   end
   def is_url?(buffer, _) do
-    re = ~r{^[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$}
-    Regex.match? re, buffer
+    if Regex.match? @match_dots, buffer do
+      false
+    else
+      Regex.match? @match_url, buffer
+    end
   end
 
   @doc false
