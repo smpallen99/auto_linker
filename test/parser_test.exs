@@ -4,7 +4,6 @@ defmodule AutoLinker.ParserTest do
 
   import AutoLinker.Parser
 
-
   describe "is_url" do
     test "valid scheme true" do
       valid_scheme_urls()
@@ -31,6 +30,23 @@ defmodule AutoLinker.ParserTest do
       end)
     end
   end
+
+  describe "match_phone" do
+    test "valid" do
+      valid_phone_nunbers()
+      |> Enum.each(fn number ->
+        assert number |> match_phone() |> is_list
+      end)
+    end
+
+    test "invalid" do
+      invalid_phone_numbers()
+      |> Enum.each(fn number ->
+        assert number |> match_phone() |> is_nil
+      end)
+    end
+  end
+
 
   describe "parse" do
     test "does not link attributes" do
@@ -87,7 +103,27 @@ defmodule AutoLinker.ParserTest do
   def invalid_non_scheme_urls, do: [
     "invalid.com/perl.cgi?key= | web-site.com/cgi-bin/perl.cgi?key1=value1&key2",
     "invalid.",
-    "hi..there"
+    "hi..there",
+    "555.555.5555"
+  ]
+
+  def valid_phone_nunbers, do: [
+    "x55",
+    "x555",
+    "x5555",
+    "x12345",
+    "+1 555 555-5555",
+    "555 555-5555",
+    "555.555.5555",
+    "613-555-5555",
+    "1 (555) 555-5555",
+    "(555) 555-5555"
+  ]
+
+  def invalid_phone_numbers, do: [
+    "5555",
+    "x5",
+    "(555) 555-55",
   ]
 
 end

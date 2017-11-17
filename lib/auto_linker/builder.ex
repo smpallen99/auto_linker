@@ -56,4 +56,36 @@ defmodule AutoLinker.Builder do
     |> String.replace(~r/^www\./, "")
   end
   defp strip_prefix(url, _), do: url
+
+  def create_phone_link([], buffer, _) do
+    buffer
+  end
+  def create_phone_link([h | t], buffer, opts) do
+    create_phone_link t, format_phone_link(h, buffer, opts), opts
+  end
+
+  def format_phone_link([h | _], buffer, opts) do
+    val =
+      h
+      |> String.replace(~r/[\.\+\- x\(\)]+/, "")
+      |> format_phone_link(h, opts)
+    # val = ~s'<a href="#" class="phone-number" data-phone="#{number}">#{h}</a>'
+    String.replace(buffer, h, val)
+  end
+
+  def format_phone_link(number, original, opts) do
+    tag = opts[:tag] || "a"
+    class = opts[:class] || "phone-number"
+    data_phone = opts[:data_phone] || "data-phone"
+    attrs = format_attributes(opts[:attributes] || [])
+    href = opts[:href] || "#"
+
+    ~s'<#{tag} href="#{href}" class="#{class}" #{data_phone}="#{number}"#{attrs}>#{original}</#{tag}>'
+  end
+
+  defp format_attributes(attrs) do
+    Enum.reduce(attrs, "", fn {name, value}, acc ->
+      acc <> ~s' #{name}="#{value}"'
+    end)
+  end
 end

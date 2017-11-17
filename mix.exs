@@ -1,7 +1,7 @@
 defmodule AutoLinker.Mixfile do
   use Mix.Project
 
-  @version "0.1.1"
+  @version "0.2.0"
 
   def project do
     [
@@ -29,7 +29,7 @@ defmodule AutoLinker.Mixfile do
   # Dependencies can be Hex packages:
   defp deps do
     [
-      {:ex_doc, "~> 0.15", only: :dev},
+      {:ex_doc, "~> 0.18", only: :dev},
       {:earmark, "~> 1.2", only: :dev, override: true},
     ]
   end

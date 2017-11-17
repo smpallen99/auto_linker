@@ -7,7 +7,7 @@
 [license-img]: http://img.shields.io/badge/license-MIT-brightgreen.svg
 [license]: http://opensource.org/licenses/MIT
 
-AutoLinker is a basic package for turning website names into links.
+AutoLinker is a basic package for turning website names, and phone numbers into links.
 
 Use this package in your web view to convert web references into click-able links.
 
@@ -19,13 +19,14 @@ The package can be installed by adding `auto_linker` to your list of dependencie
 
 ```elixir
 def deps do
-  [{:auto_linker, "~> 0.1"}]
+  [{:auto_linker, "~> 0.2"}]
 end
 ```
 
 ## Usage
 
-```
+The following examples illustrate some examples on how to use the auto linker.
+
 iex> AutoLinker.link("google.com")
 "<a href='http://google.com' class='auto-linker' target='_blank' rel='noopener noreferrer'>google.com</a>"
 
@@ -34,9 +35,27 @@ iex> AutoLinker.link("google.com", new_window: false, rel: false)
 
 iex> AutoLinker.link("google.com", new_window: false, rel: false, class: false)
 "<a href='http://google.com'>google.com</a>"
-```
+
+iex> AutoLinker.link("call me at x9999")
+~s{call me at <a href="" class="phone-number" data-number="9999">x9999</a>}
+
+iex> AutoLinker.link("or at home on 555.555.5555")
+~s{or at home on <a href="" class="phone-number" data-number="55555555555">555.555.5555</a>}
+
+iex> AutoLinker.link(", work (555) 555-5555")
+~s{, work <a href="" class="phone-number" data-number="5555555555">(555) 555-5555</a>}
 
 See the [Docs](https://hexdocs.pm/auto_linker/) for more examples
+
+## Configuration
+
+By default, link parsing is enabled and phone parsing is disabled.
+
+```elixir
+# enable phone parsing, and disable link parsing
+config :auto_linker, opts: [phone: true, url: false]
+```
+
 
 ## License
 

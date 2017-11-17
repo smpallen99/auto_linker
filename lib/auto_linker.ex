@@ -44,13 +44,7 @@ defmodule AutoLinker do
   Note that passing opts to `link/2` will override the configuration settings.
   """
   def link(text, opts \\ []) do
-    opts =
-      :auto_linker
-      |> Application.get_all_env()
-      |> Keyword.merge(opts)
-
-    parse text, Enum.into(opts, %{})
+    parse text, opts
   end
-
 
 end
