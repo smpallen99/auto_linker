@@ -43,10 +43,9 @@ defmodule AutoLinker.Parser do
       :auto_linker
       |> Application.get_env(:opts, [])
       |> Enum.into(%{})
-    config =
-      :auto_linker
-      |> Application.get_env(:attributes, [])
-      |> Enum.into(config)
+      |> Map.put(:attributes,
+        Application.get_env(:auto_linker, :attributes, [])
+      )
 
     opts =
       Enum.reduce @default_opts, opts, fn opt, acc ->
