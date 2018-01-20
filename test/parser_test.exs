@@ -35,7 +35,7 @@ defmodule AutoLinker.ParserTest do
     test "valid" do
       valid_phone_nunbers()
       |> Enum.each(fn number ->
-        assert number |> match_phone() |> is_list
+        assert number |> match_phone() |> valid_number?(number)
       end)
     end
 
@@ -69,6 +69,12 @@ defmodule AutoLinker.ParserTest do
       assert parse(text, exclude_pattern: "```") == text
     end
   end
+
+  def valid_number?([list], number) do
+    assert List.last(list) == number
+  end
+
+  def valid_number?(_, _), do: false
 
   def valid_scheme_urls, do: [
     "https://www.example.com",
@@ -117,7 +123,15 @@ defmodule AutoLinker.ParserTest do
     "555.555.5555",
     "613-555-5555",
     "1 (555) 555-5555",
-    "(555) 555-5555"
+    "(555) 555-5555",
+    "1.555.555.5555",
+    "800 555-5555",
+    "1.800.555.5555",
+    "1 (800) 555-5555",
+    "888 555-5555",
+    "887 555-5555",
+    "1-877-555-5555",
+    "1 800 710-5515"
   ]
 
   def invalid_phone_numbers, do: [
@@ -127,3 +141,4 @@ defmodule AutoLinker.ParserTest do
   ]
 
 end
+
