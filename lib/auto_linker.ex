@@ -15,6 +15,12 @@ defmodule AutoLinker do
 
       iex> AutoLinker.link("google.com", new_window: false, rel: false, class: false)
       "<a href='http://google.com'>google.com</a>"
+
+      iex> AutoLinker.link("[Google](http://google.com)", markdown: true, new_window: false, rel: false, class: false)
+      "<a href='http://google.com'>Google</a>"
+
+      iex> AutoLinker.link("[Google Search](http://google.com)", markdown: true)
+      "<a href='http://google.com' class='auto-linker' target='_blank' rel='noopener noreferrer'>Google Search</a>"
   """
 
   import AutoLinker.Parser
@@ -33,6 +39,7 @@ defmodule AutoLinker do
   * `exclude_class: false` - Set to a class name when you don't want urls auto linked in the html of the give class
   * `exclude_id: false` - Set to an element id when you don't want urls auto linked in the html of the give element
   * `exclude_patterns: ["```"] - Don't link anything between the the pattern
+  * `markdown: false` - link markdown style links
 
   Each of the above options can be specified when calling `link(text, opts)`
   or can be set in the `:auto_linker's configuration. For example:

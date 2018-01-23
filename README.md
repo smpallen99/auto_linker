@@ -45,6 +45,9 @@ iex> AutoLinker.link("or at home on 555.555.5555")
 iex> AutoLinker.link(", work (555) 555-5555")
 ~s{, work <a href="" class="phone-number" data-number="5555555555">(555) 555-5555</a>}
 
+iex> AutoLinker.link("[Google Search](http://google.com)", markdown: true)
+"<a href='http://google.com' class='auto-linker' target='_blank' rel='noopener noreferrer'>Google Search</a>"
+
 See the [Docs](https://hexdocs.pm/auto_linker/) for more examples
 
 ## Configuration

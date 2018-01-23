@@ -62,6 +62,11 @@ defmodule AutoLinker.Parser do
   defp do_parse(text, %{phone: false} = opts), do: do_parse(text, Map.delete(opts, :phone))
   defp do_parse(text, %{url: false} = opts), do: do_parse(text, Map.delete(opts, :url))
 
+  defp do_parse(text, %{markdown: true} = opts) do
+    text
+    |> Builder.create_markdown_links(opts)
+    |> do_parse(Map.delete(opts, :markdown))
+  end
   defp do_parse(text, %{phone: _} = opts) do
     text
     |> do_parse(false, opts, {"", "", :parsing}, &check_and_link_phone/3)
@@ -79,13 +84,16 @@ defmodule AutoLinker.Parser do
 
   defp do_parse(text, _), do: text
 
-  # state = {buffer, acc, state}
-
   defp do_parse("", _scheme, _opts ,{"", acc, _}, _handler),
     do: acc
 
   defp do_parse("", scheme, opts ,{buffer, acc, _}, handler),
     do: acc <> handler.(buffer, scheme, opts)
+  defp do_parse("<a" <> text, scheme, opts, {buffer, acc, :parsing}, handler),
+    do: do_parse(text, scheme, opts, {"", acc <> buffer <> "<a", :skip}, handler)
+
+  defp do_parse("</a>" <> text, scheme, opts, {buffer, acc, :skip}, handler),
+    do: do_parse(text, scheme, opts, {"", acc <> buffer <> "</a>", :parsing}, handler)
 
   defp do_parse("<" <> text, scheme, opts, {"", acc, :parsing}, handler),
     do: do_parse(text, scheme, opts, {"<", acc, {:open, 1}}, handler)
@@ -131,7 +139,6 @@ defmodule AutoLinker.Parser do
   defp do_parse(<<ch::8>> <> text, scheme, opts, {buffer, acc, state}, handler),
     do: do_parse(text, scheme, opts, {buffer <> <<ch::8>>, acc, state}, handler)
 
-
   def check_and_link(buffer, scheme, opts) do
     buffer
     |> is_url?(scheme)
@@ -154,7 +161,6 @@ defmodule AutoLinker.Parser do
   end
 
   def is_url?(buffer, _) do
-    # IO.puts "..... '#{buffer}'"
     if Regex.match? @invalid_url, buffer do
       false
     else

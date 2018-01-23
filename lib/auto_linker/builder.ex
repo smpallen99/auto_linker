@@ -15,6 +15,14 @@ defmodule AutoLinker.Builder do
     |> format_url(url, opts)
   end
 
+  def create_markdown_links(text, opts) do
+    []
+    |> build_attrs(text, opts, :rel)
+    |> build_attrs(text, opts, :target)
+    |> build_attrs(text, opts, :class)
+    |> format_markdown(text, opts)
+  end
+
   defp build_attrs(attrs, _, opts, :rel) do
     if rel = Map.get(opts, :rel, "noopener noreferrer"),
       do: [{:rel, rel} | attrs], else: attrs
@@ -37,11 +45,23 @@ defmodule AutoLinker.Builder do
       url
       |> strip_prefix(Map.get(opts, :strip_prefix, true))
       |> truncate(Map.get(opts, :truncate, false))
-    attrs =
-      attrs
-      |> Enum.map(fn {key, value} -> ~s(#{key}='#{value}') end)
-      |> Enum.join(" ")
+    attrs = format_attrs(attrs)
     "<a #{attrs}>" <> url <> "</a>"
+  end
+
+  defp format_attrs(attrs) do
+    attrs
+    |> Enum.map(fn {key, value} -> ~s(#{key}='#{value}') end)
+    |> Enum.join(" ")
+  end
+
+  defp format_markdown(attrs, text, _opts) do
+    attrs =
+      case format_attrs(attrs) do
+        "" -> ""
+        attrs -> " " <> attrs
+      end
+    Regex.replace(~r/\[(.+?)\]\((.+?)\)/, text, "<a href='\\2'#{attrs}>\\1</a>")
   end
 
   defp truncate(url, false), do: url
