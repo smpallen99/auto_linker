@@ -23,4 +23,10 @@ defmodule AutoLinkerTest do
       "<a href='http://google.com'>google.com</a>"
   end
 
+  test "phone number and markdown link" do
+    assert AutoLinker.link("888 888-8888  [ab](a.com)", phone: true, markdown: true) ==
+      "<a href=\"#\" class=\"phone-number\" data-phone=\"8888888888\">888 888-8888</a>" <>
+      "  <a href='a.com' class='auto-linker' target='_blank' rel='noopener noreferrer'>ab</a>"
+  end
+
 end

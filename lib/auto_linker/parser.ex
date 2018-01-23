@@ -62,15 +62,16 @@ defmodule AutoLinker.Parser do
   defp do_parse(text, %{phone: false} = opts), do: do_parse(text, Map.delete(opts, :phone))
   defp do_parse(text, %{url: false} = opts), do: do_parse(text, Map.delete(opts, :url))
 
-  defp do_parse(text, %{markdown: true} = opts) do
-    text
-    |> Builder.create_markdown_links(opts)
-    |> do_parse(Map.delete(opts, :markdown))
-  end
   defp do_parse(text, %{phone: _} = opts) do
     text
     |> do_parse(false, opts, {"", "", :parsing}, &check_and_link_phone/3)
     |> do_parse(Map.delete(opts, :phone))
+  end
+
+  defp do_parse(text, %{markdown: true} = opts) do
+    text
+    |> Builder.create_markdown_links(opts)
+    |> do_parse(Map.delete(opts, :markdown))
   end
 
   defp do_parse(text, %{url: _} = opts) do
