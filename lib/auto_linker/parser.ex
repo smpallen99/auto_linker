@@ -29,9 +29,13 @@ defmodule AutoLinker.Parser do
   @invalid_url ~r/(\.\.+)|(^(\d+\.){1,2}\d+$)/
 
   @match_url ~r{^[\w\.-]+(?<tld>\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$}
-  @match_scheme ~r{^(?:http(s)?:\/\/)?[\w.-]+(?<tld>\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$}
+  @match_scheme ~r{^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$}
 
   @match_phone ~r"((?:x\d{2,7})|(?:(?:\+?1\s?(?:[.-]\s?)?)?(?:\(\s?(?:[2-9]1[02-9]|[2-9][02-8]1|[2-9][02-8][02-9])\s?\)|(?:[2-9]1[02-9]|[2-9][02-8]1|[2-9][02-8][02-9]))\s?(?:[.-]\s?)?)(?:[2-9]1[02-9]|[2-9][02-9]1|[2-9][02-9]{2})\s?(?:[.-]\s?)?(?:[0-9]{4}))"
+
+  @match_hostname ~r{^(?:https?:\/\/)?(?:[^@\n]+@)?(?<host>[^:#~\/\n?]+)}
+
+  @match_ip ~r"^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"
 
   @default_opts ~w(url)a
 
@@ -185,7 +189,7 @@ defmodule AutoLinker.Parser do
     if Regex.match?(@invalid_url, buffer) do
       false
     else
-      Regex.run(@match_scheme, buffer, capture: [:tld]) |> is_valid_tld?()
+      Regex.match?(@match_scheme, buffer) |> is_valid_tld?(buffer)
     end
   end
 
@@ -193,12 +197,26 @@ defmodule AutoLinker.Parser do
     if Regex.match?(@invalid_url, buffer) do
       false
     else
-      Regex.run(@match_url, buffer, capture: [:tld]) |> is_valid_tld?()
+      Regex.match?(@match_url, buffer) |> is_valid_tld?(buffer)
     end
   end
 
-  def is_valid_tld?(["." <> tld]), do: tld in @tlds
-  def is_valid_tld?(_), do: false
+  def is_valid_tld?(true, buffer) do
+    [host] = Regex.run(@match_hostname, buffer, capture: [:host])
+
+    if is_ip?(host) do
+      true
+    else
+      tld = host |> String.split(".") |> List.last()
+      tld in @tlds
+    end
+  end
+
+  def is_valid_tld?(false, _), do: false
+
+  def is_ip?(buffer) do
+    Regex.match?(@match_ip, buffer)
+  end
 
   @doc false
   def match_phone(buffer) do
