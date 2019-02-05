@@ -24,20 +24,21 @@ defmodule AutoLinker.Builder do
   end
 
   defp build_attrs(attrs, _, opts, :rel) do
-    if rel = Map.get(opts, :rel, "noopener noreferrer"),
-      do: [{:rel, rel} | attrs], else: attrs
+    if rel = Map.get(opts, :rel, "noopener noreferrer"), do: [{:rel, rel} | attrs], else: attrs
   end
+
   defp build_attrs(attrs, _, opts, :target) do
-    if Map.get(opts, :new_window, true),
-      do: [{:target, :_blank} | attrs], else: attrs
+    if Map.get(opts, :new_window, true), do: [{:target, :_blank} | attrs], else: attrs
   end
+
   defp build_attrs(attrs, _, opts, :class) do
-    if cls = Map.get(opts, :class, "auto-linker"),
-      do: [{:class, cls} | attrs], else: attrs
+    if cls = Map.get(opts, :class, "auto-linker"), do: [{:class, cls} | attrs], else: attrs
   end
+
   defp build_attrs(attrs, url, _opts, :scheme) do
     if String.starts_with?(url, ["http://", "https://"]),
-      do: [{:href, url} | attrs], else: [{:href, "http://" <> url} | attrs]
+      do: [{:href, url} | attrs],
+      else: [{:href, "http://" <> url} | attrs]
   end
 
   defp format_url(attrs, url, opts) do
@@ -45,6 +46,7 @@ defmodule AutoLinker.Builder do
       url
       |> strip_prefix(Map.get(opts, :strip_prefix, true))
       |> truncate(Map.get(opts, :truncate, false))
+
     attrs = format_attrs(attrs)
     "<a #{attrs}>" <> url <> "</a>"
   end
@@ -61,11 +63,13 @@ defmodule AutoLinker.Builder do
         "" -> ""
         attrs -> " " <> attrs
       end
+
     Regex.replace(~r/\[(.+?)\]\((.+?)\)/, text, "<a href='\\2'#{attrs}>\\1</a>")
   end
 
   defp truncate(url, false), do: url
   defp truncate(url, len) when len < 3, do: url
+
   defp truncate(url, len) do
     if String.length(url) > len, do: String.slice(url, 0, len - 2) <> "..", else: url
   end
@@ -75,13 +79,15 @@ defmodule AutoLinker.Builder do
     |> String.replace(~r/^https?:\/\//, "")
     |> String.replace(~r/^www\./, "")
   end
+
   defp strip_prefix(url, _), do: url
 
   def create_phone_link([], buffer, _) do
     buffer
   end
+
   def create_phone_link([h | t], buffer, opts) do
-    create_phone_link t, format_phone_link(h, buffer, opts), opts
+    create_phone_link(t, format_phone_link(h, buffer, opts), opts)
   end
 
   def format_phone_link([h | _], buffer, opts) do
@@ -89,6 +95,7 @@ defmodule AutoLinker.Builder do
       h
       |> String.replace(~r/[\.\+\- x\(\)]+/, "")
       |> format_phone_link(h, opts)
+
     # val = ~s'<a href="#" class="phone-number" data-phone="#{number}">#{h}</a>'
     String.replace(buffer, h, val)
   end
@@ -100,7 +107,9 @@ defmodule AutoLinker.Builder do
     attrs = format_attributes(opts[:attributes] || [])
     href = opts[:href] || "#"
 
-    ~s'<#{tag} href="#{href}" class="#{class}" #{data_phone}="#{number}"#{attrs}>#{original}</#{tag}>'
+    ~s'<#{tag} href="#{href}" class="#{class}" #{data_phone}="#{number}"#{attrs}>#{original}</#{
+      tag
+    }>'
   end
 
   defp format_attributes(attrs) do

@@ -51,7 +51,6 @@ defmodule AutoLinker do
   Note that passing opts to `link/2` will override the configuration settings.
   """
   def link(text, opts \\ []) do
-    parse text, opts
+    parse(text, opts)
   end
-
 end
