@@ -208,7 +208,8 @@ defmodule AutoLinker.Parser do
       true
     else
       tld = host |> String.split(".") |> List.last()
-      tld in @tlds
+
+      Enum.member?(@tlds, tld)
     end
   end
 
