@@ -28,12 +28,14 @@ defmodule AutoLinker.Parser do
   # @invalid_url ~r/\.\.+/
   @invalid_url ~r/(\.\.+)|(^(\d+\.){1,2}\d+$)/
 
-  @match_url ~r{^[\w\.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$}
-  @match_scheme ~r{^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$}
+  @match_url ~r{^[\w\.-]+(?<tld>\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$}
+  @match_scheme ~r{^(?:http(s)?:\/\/)?[\w.-]+(?<tld>\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$}
 
   @match_phone ~r"((?:x\d{2,7})|(?:(?:\+?1\s?(?:[.-]\s?)?)?(?:\(\s?(?:[2-9]1[02-9]|[2-9][02-8]1|[2-9][02-8][02-9])\s?\)|(?:[2-9]1[02-9]|[2-9][02-8]1|[2-9][02-8][02-9]))\s?(?:[.-]\s?)?)(?:[2-9]1[02-9]|[2-9][02-9]1|[2-9][02-9]{2})\s?(?:[.-]\s?)?(?:[0-9]{4}))"
 
   @default_opts ~w(url)a
+
+  @tlds "./priv/tlds.txt" |> File.read!() |> String.trim() |> String.split("\n")
 
   def parse(text, opts \\ %{})
   def parse(text, list) when is_list(list), do: parse(text, Enum.into(list, %{}))
@@ -183,7 +185,7 @@ defmodule AutoLinker.Parser do
     if Regex.match?(@invalid_url, buffer) do
       false
     else
-      Regex.match?(@match_scheme, buffer)
+      Regex.run(@match_scheme, buffer, capture: [:tld]) |> is_valid_tld?()
     end
   end
 
@@ -191,9 +193,12 @@ defmodule AutoLinker.Parser do
     if Regex.match?(@invalid_url, buffer) do
       false
     else
-      Regex.match?(@match_url, buffer)
+      Regex.run(@match_url, buffer, capture: [:tld]) |> is_valid_tld?()
     end
   end
+
+  def is_valid_tld?(["." <> tld]), do: tld in @tlds
+  def is_valid_tld?(_), do: false
 
   @doc false
   def match_phone(buffer) do
