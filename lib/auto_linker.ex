@@ -38,11 +38,11 @@ defmodule AutoLinker do
   * `strip_prefix: true` - Strip the scheme prefix
   * `exclude_class: false` - Set to a class name when you don't want urls auto linked in the html of the give class
   * `exclude_id: false` - Set to an element id when you don't want urls auto linked in the html of the give element
-  * `exclude_patterns: ["```"] - Don't link anything between the the pattern
+  * `exclude_patterns: ["```"]` - Don't link anything between the the pattern
   * `markdown: false` - link markdown style links
 
   Each of the above options can be specified when calling `link(text, opts)`
-  or can be set in the `:auto_linker's configuration. For example:
+  or can be set in the `:auto_linker`'s configuration. For example:
 
        config :auto_linker,
          class: false,
@@ -51,7 +51,6 @@ defmodule AutoLinker do
   Note that passing opts to `link/2` will override the configuration settings.
   """
   def link(text, opts \\ []) do
-    parse text, opts
+    parse(text, opts)
   end
-
 end
