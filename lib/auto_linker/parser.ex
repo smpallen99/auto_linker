@@ -56,7 +56,17 @@ defmodule AutoLinker.Parser do
         end
       end
 
-    do_parse text, Map.merge(config, opts)
+    opts = Map.merge(config, opts)
+
+    text
+    |> split_code_blocks()
+    |> Enum.reduce([], fn
+      {:skip, block}, acc ->
+        [block | acc]
+      block, acc ->
+        [do_parse(block, opts) | acc]
+    end)
+    |> Enum.join("")
   end
 
   defp do_parse(text, %{phone: false} = opts), do: do_parse(text, Map.delete(opts, :phone))
@@ -189,4 +199,31 @@ defmodule AutoLinker.Parser do
   end
   def link_url(_, buffer, _opts), do: buffer
 
+  def split_code_blocks(text) do
+    if text =~ "!md" && text =~ "```" do
+      split_code_blocks(text, [""], false)
+    else
+      [text]
+    end
+  end
+
+  defp split_code_blocks("", acc, false) do
+    acc
+  end
+
+  defp split_code_blocks("", [buff | acc], true) do
+    [{:skip, buff} | acc]
+  end
+
+  defp split_code_blocks("```" <> rest, [buff | acc], true) do
+    split_code_blocks(rest, ["", {:skip, buff <> "```"} | acc], false)
+  end
+
+  defp split_code_blocks("```" <> rest, acc, false) do
+    split_code_blocks(rest, ["```" | acc], true)
+  end
+
+  defp split_code_blocks(<<ch::8>> <> rest, [buff | acc], in_block) do
+    split_code_blocks(rest, [buff <> <<ch::8>> | acc], in_block)
+  end
 end
