@@ -80,8 +80,19 @@ defmodule AutoLinker.Builder do
   def create_phone_link([], buffer, _) do
     buffer
   end
-  def create_phone_link([h | t], buffer, opts) do
-    create_phone_link t, format_phone_link(h, buffer, opts), opts
+
+  def create_phone_link(list, buffer, opts) do
+    list
+    |> Enum.uniq()
+    |> do_create_phone_link(buffer, opts)
+  end
+
+  def do_create_phone_link([], buffer, _opts) do
+    buffer
+  end
+
+  def do_create_phone_link([h | t], buffer, opts) do
+    do_create_phone_link(t, format_phone_link(h, buffer, opts), opts)
   end
 
   def format_phone_link([h | _], buffer, opts) do
@@ -89,7 +100,6 @@ defmodule AutoLinker.Builder do
       h
       |> String.replace(~r/[\.\+\- x\(\)]+/, "")
       |> format_phone_link(h, opts)
-    # val = ~s'<a href="#" class="phone-number" data-phone="#{number}">#{h}</a>'
     String.replace(buffer, h, val)
   end
 

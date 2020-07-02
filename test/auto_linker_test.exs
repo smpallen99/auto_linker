@@ -8,6 +8,16 @@ defmodule AutoLinkerTest do
       ~s{, work <a href="#" class="phone-number" data-phone="5555555555">(555) 555-5555</a>}
   end
 
+  test "multiple phone numbers" do
+    assert AutoLinker.link("15555555555 and 15555555554", phone: true) ==
+      ~s{<a href="#" class="phone-number" data-phone="15555555555">15555555555</a> and } <>
+        ~s{<a href="#" class="phone-number" data-phone="15555555554">15555555554</a>}
+
+    assert AutoLinker.link("15555565222 and 15555565222", phone: true) ==
+      ~s{<a href="#" class="phone-number" data-phone="15555565222">15555565222</a> and } <>
+        ~s{<a href="#" class="phone-number" data-phone="15555565222">15555565222</a>}
+  end
+
   test "default link" do
     assert AutoLinker.link("google.com") ==
       "<a href='http://google.com' class='auto-linker' target='_blank' rel='noopener noreferrer'>google.com</a>"
