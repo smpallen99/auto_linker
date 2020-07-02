@@ -12,6 +12,14 @@ defmodule AutoLinker.Mixfile do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       docs: [extras: ["README.md"]],
+      test_coverage: [tool: ExCoveralls],
+      preferred_cli_env: [
+        coveralls: :test,
+        "coveralls.detail": :test,
+        "coveralls.post": :test,
+        "coveralls.html": :test,
+        test: :test
+      ],
       package: package(),
       name: "AutoLinker",
       description: """
@@ -30,7 +38,9 @@ defmodule AutoLinker.Mixfile do
   defp deps do
     [
       {:ex_doc, "~> 0.18", only: :dev},
-      {:earmark, "~> 1.2", only: :dev, override: true}
+      {:earmark, "~> 1.2", only: :dev, override: true},
+      {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false},
+      {:excoveralls, "~> 0.10", only: :test}
     ]
   end
 

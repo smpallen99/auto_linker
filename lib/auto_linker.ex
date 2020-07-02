@@ -21,6 +21,18 @@ defmodule AutoLinker do
 
       iex> AutoLinker.link("[Google Search](http://google.com)", markdown: true)
       "<a href='http://google.com' class='auto-linker' target='_blank' rel='noopener noreferrer'>Google Search</a>"
+
+      iex> AutoLinker.link("google.com", truncate: 12)
+      "<a href='http://google.com' class='auto-linker' target='_blank' rel='noopener noreferrer'>google.com</a>"
+
+      iex> AutoLinker.link("some-very-long-url.com", truncate: 12)
+      "<a href='http://some-very-long-url.com' class='auto-linker' target='_blank' rel='noopener noreferrer'>some-very-..</a>"
+
+      iex> AutoLinker.link("https://google.com", scheme: true)
+      "<a href='https://google.com' class='auto-linker' target='_blank' rel='noopener noreferrer'>google.com</a>"
+
+      iex> AutoLinker.link("https://google.com", scheme: true, strip_prefix: false)
+      "<a href='https://google.com' class='auto-linker' target='_blank' rel='noopener noreferrer'>https://google.com</a>"
   """
 
   import AutoLinker.Parser

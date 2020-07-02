@@ -89,4 +89,68 @@ defmodule AutoLinkerTest do
       assert AutoLinker.link(text) == text
     end
   end
+
+  describe "mixed links" do
+    test "phone and link" do
+      text = "test google.com @ x555"
+      expected = "test <a href='http://google.com'>google.com</a> @ <a href=\"#\" class=\"phone-number\" data-phone=\"555\">x555</a>"
+      assert AutoLinker.link(text, phone: true, rel: false, new_window: false, class: false) == expected
+    end
+
+    test "no phone and link" do
+      text = "test google.com @ x555"
+      expected = "test <a href='http://google.com'>google.com</a> @ x555"
+      assert AutoLinker.link(text, phone: false, rel: false, new_window: false, class: false) == expected
+    end
+
+    test "phone and truncate 10" do
+      text = "1-555-555-5555 and maps.google.com"
+      expected = "<a href=\"#\" class=\"phone-number\" data-phone=\"15555555555\">1-555-555-5555</a> and <a href='http://maps.google.com'>maps.goo..</a>"
+      assert AutoLinker.link(text, phone: true, rel: false, new_window: false, class: false, truncate: 10) == expected
+    end
+
+    test "phone and truncate 2" do
+      text = "1-555-555-5555 and maps.google.com"
+      expected = "<a href=\"#\" class=\"phone-number\" data-phone=\"15555555555\">1-555-555-5555</a> and <a href='http://maps.google.com'>maps.google.com</a>"
+      assert AutoLinker.link(text, phone: true, rel: false, new_window: false, class: false, truncate: 2) == expected
+    end
+  end
+
+  test "skips nested phone" do
+    text = "<div class='x555'>test</div>"
+    assert AutoLinker.link(text, phone: true, rel: false, new_window: false, class: false) == text
+  end
+
+  test "skips nested link" do
+    text = "<div class='google.com'>test</div>"
+    assert AutoLinker.link(text, phone: true, rel: false, new_window: false, class: false) == text
+  end
+
+  test "skips phone number in div" do
+    text = "<div> x555 </div>"
+    assert AutoLinker.link(text, phone: true, rel: false, new_window: false, class: false) == text
+  end
+
+  test "skips link number in div" do
+    text = "<div> google.com </div>"
+    assert AutoLinker.link(text, phone: true, rel: false, new_window: false, class: false) == text
+  end
+
+  test "does not skip phone number after div" do
+    text = "<div> x555 </div> x555"
+    expected = "<div> x555 </div> <a href=\"#\" class=\"phone-number\" data-phone=\"555\">x555</a>"
+    assert AutoLinker.link(text, phone: true, rel: false, new_window: false, class: false) == expected
+  end
+
+  test "skips links in nested tags" do
+    # text = "<div> <b>test</b> google.com x555</div>"
+    text = "<a> <b>test</b> google.com </a>"
+    assert AutoLinker.link(text, phone: true, rel: false, new_window: false, class: false) == text
+  end
+
+  test "url false" do
+    text = "test google.com"
+    assert AutoLinker.link(text, phone: true, url: false) == text
+    assert AutoLinker.link(text, phone: false, url: false) == text
+  end
 end
