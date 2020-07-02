@@ -43,18 +43,19 @@ defmodule AutoLinker.Parser do
       :auto_linker
       |> Application.get_env(:opts, [])
       |> Enum.into(%{})
-      |> Map.put(:attributes,
+      |> Map.put(
+        :attributes,
         Application.get_env(:auto_linker, :attributes, [])
       )
 
     opts =
-      Enum.reduce @default_opts, opts, fn opt, acc ->
+      Enum.reduce(@default_opts, opts, fn opt, acc ->
         if is_nil(opts[opt]) and is_nil(config[opt]) do
-          Map.put acc, opt, true
+          Map.put(acc, opt, true)
         else
           acc
         end
-      end
+      end)
 
     opts = Map.merge(config, opts)
 
@@ -63,6 +64,7 @@ defmodule AutoLinker.Parser do
     |> Enum.reduce([], fn
       {:skip, block}, acc ->
         [block | acc]
+
       block, acc ->
         [do_parse(block, opts) | acc]
     end)
@@ -95,11 +97,12 @@ defmodule AutoLinker.Parser do
 
   defp do_parse(text, _), do: text
 
-  defp do_parse("", _scheme, _opts ,{"", acc, _}, _handler),
+  defp do_parse("", _scheme, _opts, {"", acc, _}, _handler),
     do: acc
 
-  defp do_parse("", scheme, opts ,{buffer, acc, _}, handler),
+  defp do_parse("", scheme, opts, {buffer, acc, _}, handler),
     do: acc <> handler.(buffer, scheme, opts)
+
   defp do_parse("<a" <> text, scheme, opts, {buffer, acc, :parsing}, handler),
     do: do_parse(text, scheme, opts, {"", acc <> buffer <> "<a", :skip}, handler)
 
@@ -116,8 +119,14 @@ defmodule AutoLinker.Parser do
     do: do_parse(text, scheme, opts, {"", acc <> <<ch::8>>, {:attrs, level}}, handler)
 
   defp do_parse("</" <> text, scheme, opts, {buffer, acc, {:html, level}}, handler),
-    do: do_parse(text, scheme, opts,
-      {"", acc <> handler.(buffer, scheme, opts) <> "</", {:close, level}}, handler)
+    do:
+      do_parse(
+        text,
+        scheme,
+        opts,
+        {"", acc <> handler.(buffer, scheme, opts) <> "</", {:close, level}},
+        handler
+      )
 
   defp do_parse(">" <> text, scheme, opts, {buffer, acc, {:close, 1}}, handler),
     do: do_parse(text, scheme, opts, {"", acc <> buffer <> ">", :parsing}, handler)
@@ -136,16 +145,34 @@ defmodule AutoLinker.Parser do
     do: do_parse(text, scheme, opts, {buffer <> " ", acc, state}, handler)
 
   defp do_parse(" " <> text, scheme, opts, {buffer, acc, state}, handler),
-    do: do_parse(text, scheme, opts,
-      {"", acc <> handler.(buffer, scheme, opts) <> " ", state}, handler)
+    do:
+      do_parse(
+        text,
+        scheme,
+        opts,
+        {"", acc <> handler.(buffer, scheme, opts) <> " ", state},
+        handler
+      )
 
   defp do_parse("\n" <> text, scheme, opts, {buffer, acc, state}, handler),
-    do: do_parse(text, scheme, opts,
-      {"", acc <> handler.(buffer, scheme, opts) <> "\n", state}, handler)
+    do:
+      do_parse(
+        text,
+        scheme,
+        opts,
+        {"", acc <> handler.(buffer, scheme, opts) <> "\n", state},
+        handler
+      )
 
   defp do_parse(<<ch::8>>, scheme, opts, {buffer, acc, state}, handler),
-    do: do_parse("", scheme, opts,
-      {"", acc <> handler.(buffer <> <<ch::8>>, scheme, opts), state}, handler)
+    do:
+      do_parse(
+        "",
+        scheme,
+        opts,
+        {"", acc <> handler.(buffer <> <<ch::8>>, scheme, opts), state},
+        handler
+      )
 
   defp do_parse(<<ch::8>> <> text, scheme, opts, {buffer, acc, state}, handler),
     do: do_parse(text, scheme, opts, {buffer <> <<ch::8>>, acc, state}, handler)
@@ -164,24 +191,24 @@ defmodule AutoLinker.Parser do
 
   @doc false
   def is_url?(buffer, true) do
-    if Regex.match? @invalid_url, buffer do
+    if Regex.match?(@invalid_url, buffer) do
       false
     else
-      Regex.match? @match_scheme, buffer
+      Regex.match?(@match_scheme, buffer)
     end
   end
 
   def is_url?(buffer, _) do
-    if Regex.match? @invalid_url, buffer do
+    if Regex.match?(@invalid_url, buffer) do
       false
     else
-      Regex.match? @match_url, buffer
+      Regex.match?(@match_url, buffer)
     end
   end
 
   @doc false
   def match_phone(buffer) do
-    case Regex.scan @match_phone, buffer do
+    case Regex.scan(@match_phone, buffer) do
       [] -> nil
       other -> other
     end
@@ -190,13 +217,14 @@ defmodule AutoLinker.Parser do
   def link_phone(nil, buffer, _), do: buffer
 
   def link_phone(list, buffer, opts) do
-    Builder.create_phone_link list, buffer, opts
+    Builder.create_phone_link(list, buffer, opts)
   end
 
   @doc false
   def link_url(true, buffer, opts) do
     Builder.create_link(buffer, opts)
   end
+
   def link_url(_, buffer, _opts), do: buffer
 
   def split_code_blocks(text) do
