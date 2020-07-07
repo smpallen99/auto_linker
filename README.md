@@ -19,7 +19,7 @@ The package can be installed by adding `auto_linker` to your list of dependencie
 
 ```elixir
 def deps do
-  [{:auto_linker, "~> 0.2"}]
+  [{:auto_linker, "~> 1.0"}]
 end
 ```
 
@@ -62,7 +62,7 @@ config :auto_linker, opts: [phone: true, url: false]
 
 ## License
 
-`auto_linker` is Copyright (c) 2017 E-MetroTel
+`auto_linker` is Copyright (c) 2017 - 2020 E-MetroTel
 
 The source is released under the MIT License.
 
