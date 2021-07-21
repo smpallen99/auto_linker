@@ -31,7 +31,7 @@ defmodule AutoLinker.Parser do
   @match_url ~r{^[\w\.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$}
   @match_scheme ~r{^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$}
 
-  @match_phone ~r"((?:x\d{2,7})|(?:(?:\+?1\s?(?:[.-]\s?)?)?(?:\(\s?(?:[2-9]1[02-9]|[2-9][02-8]1|[2-9][02-8][02-9])\s?\)|(?:[2-9]1[02-9]|[2-9][02-8]1|[2-9][02-8][02-9]))\s?(?:[.-]\s?)?)(?:[2-9]1[02-9]|[2-9][02-9]1|[2-9][02-9]{2})\s?(?:[.-]\s?)?(?:[0-9]{4}))"
+  @match_phone ~r"((?:x\d{2,7})|(?:(?:\d{1,3}[\s\-.]?)?(?:\+?1\s?(?:[.-]\s?)?)?(?:\(\s?(?:[2-9]1[02-9]|[2-9][02-8]1|[2-9][02-8][02-9])\s?\)|(?:[2-9]1[02-9]|[2-9][02-8]1|[2-9][02-8][02-9]))\s?(?:[.-]\s?)?)(?:[2-9]1[02-9]|[2-9][02-9]1|[2-9][02-9]{2})\s?(?:[.-]\s?)?(?:[0-9]{4}))"
 
   @default_opts ~w(url)a
 
@@ -191,28 +191,55 @@ defmodule AutoLinker.Parser do
 
   @doc false
   def is_url?(buffer, true) do
-    if Regex.match?(@invalid_url, buffer) do
+    if Regex.match?(invalid_url_re(), buffer) do
       false
     else
-      Regex.match?(@match_scheme, buffer)
+      Regex.match?(match_scheme_re(), buffer)
     end
   end
 
   def is_url?(buffer, _) do
-    if Regex.match?(@invalid_url, buffer) do
+    if Regex.match?(invalid_url_re(), buffer) do
       false
     else
-      Regex.match?(@match_url, buffer)
+      Regex.match?(match_url_re(), buffer)
     end
   end
 
   @doc false
   def match_phone(buffer) do
-    case Regex.scan(@match_phone, buffer) do
+    case Regex.scan(match_phone_re(), buffer) do
       [] -> nil
       other -> other
     end
   end
+
+  defp invalid_url_re do
+    :one_dialer
+    |> Application.get_env(:invalid_url_re, @invalid_url)
+    |> compile_re()
+  end
+
+  defp match_scheme_re do
+    :one_dialer
+    |> Application.get_env(:match_scheme_re, @match_scheme)
+    |> compile_re()
+  end
+
+  defp match_url_re do
+    :one_dialer
+    |> Application.get_env(:match_url_re, @match_url)
+    |> compile_re()
+  end
+
+  defp match_phone_re do
+    :one_dialer
+    |> Application.get_env(:match_phone_re, @match_phone)
+    |> compile_re()
+  end
+
+  defp compile_re(string) when is_binary(string), do: Regex.compile!(string)
+  defp compile_re(re), do: re
 
   def link_phone(nil, buffer, _), do: buffer
 

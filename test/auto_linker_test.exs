@@ -93,26 +93,50 @@ defmodule AutoLinkerTest do
   describe "mixed links" do
     test "phone and link" do
       text = "test google.com @ x555"
-      expected = "test <a href='http://google.com'>google.com</a> @ <a href=\"#\" class=\"phone-number\" data-phone=\"555\">x555</a>"
-      assert AutoLinker.link(text, phone: true, rel: false, new_window: false, class: false) == expected
+
+      expected =
+        "test <a href='http://google.com'>google.com</a> @ <a href=\"#\" class=\"phone-number\" data-phone=\"555\">x555</a>"
+
+      assert AutoLinker.link(text, phone: true, rel: false, new_window: false, class: false) ==
+               expected
     end
 
     test "no phone and link" do
       text = "test google.com @ x555"
       expected = "test <a href='http://google.com'>google.com</a> @ x555"
-      assert AutoLinker.link(text, phone: false, rel: false, new_window: false, class: false) == expected
+
+      assert AutoLinker.link(text, phone: false, rel: false, new_window: false, class: false) ==
+               expected
     end
 
     test "phone and truncate 10" do
       text = "1-555-555-5555 and maps.google.com"
-      expected = "<a href=\"#\" class=\"phone-number\" data-phone=\"15555555555\">1-555-555-5555</a> and <a href='http://maps.google.com'>maps.goo..</a>"
-      assert AutoLinker.link(text, phone: true, rel: false, new_window: false, class: false, truncate: 10) == expected
+
+      expected =
+        "<a href=\"#\" class=\"phone-number\" data-phone=\"15555555555\">1-555-555-5555</a> and <a href='http://maps.google.com'>maps.goo..</a>"
+
+      assert AutoLinker.link(text,
+               phone: true,
+               rel: false,
+               new_window: false,
+               class: false,
+               truncate: 10
+             ) == expected
     end
 
     test "phone and truncate 2" do
       text = "1-555-555-5555 and maps.google.com"
-      expected = "<a href=\"#\" class=\"phone-number\" data-phone=\"15555555555\">1-555-555-5555</a> and <a href='http://maps.google.com'>maps.google.com</a>"
-      assert AutoLinker.link(text, phone: true, rel: false, new_window: false, class: false, truncate: 2) == expected
+
+      expected =
+        "<a href=\"#\" class=\"phone-number\" data-phone=\"15555555555\">1-555-555-5555</a> and <a href='http://maps.google.com'>maps.google.com</a>"
+
+      assert AutoLinker.link(text,
+               phone: true,
+               rel: false,
+               new_window: false,
+               class: false,
+               truncate: 2
+             ) == expected
     end
   end
 
@@ -138,13 +162,16 @@ defmodule AutoLinkerTest do
 
   test "does not skip phone number after div" do
     text = "<div> x555 </div> x555"
-    expected = "<div> x555 </div> <a href=\"#\" class=\"phone-number\" data-phone=\"555\">x555</a>"
-    assert AutoLinker.link(text, phone: true, rel: false, new_window: false, class: false) == expected
+
+    expected =
+      "<div> x555 </div> <a href=\"#\" class=\"phone-number\" data-phone=\"555\">x555</a>"
+
+    assert AutoLinker.link(text, phone: true, rel: false, new_window: false, class: false) ==
+             expected
   end
 
   test "skips links in nested tags" do
-    # text = "<div> <b>test</b> google.com x555</div>"
-    text = "<a> <b>test</b> google.com </a>"
+    text = ~s'<a href="google.com">google.com</a>'
     assert AutoLinker.link(text, phone: true, rel: false, new_window: false, class: false) == text
   end
 
@@ -152,5 +179,39 @@ defmodule AutoLinkerTest do
     text = "test google.com"
     assert AutoLinker.link(text, phone: true, url: false) == text
     assert AutoLinker.link(text, phone: false, url: false) == text
+  end
+
+  test "phone number with external line prefix" do
+    text = "test 9 1 (613) 555-5555"
+
+    assert AutoLinker.link(text, phone: true) ==
+             "test <a href=\"#\" class=\"phone-number\" data-phone=\"916135555555\">9 1 (613) 555-5555</a>"
+  end
+
+  test "phone number with different external line prefixes" do
+    valid = [
+      "8 (613) 555-5555",
+      "88 (613) 555-5555",
+      "88-613-555-5555",
+      "999.613.555.5555",
+      "816135551234",
+      "96135551234"
+    ]
+
+    Enum.each(valid, fn number ->
+      stripped = String.replace(number, ~r/[\s.\-\(\)]/, "")
+
+      escaped_number =
+        number
+        |> String.replace(~r/\(/, "\\(")
+        |> String.replace(~r/\)/, "\\)")
+        |> String.replace(~r/\-/, "\\-")
+        |> String.replace(~r/\./, "\\.")
+
+      assert Regex.match?(
+               ~r/data-phone="#{stripped}">#{escaped_number}<\/a>/,
+               AutoLinker.link(number, phone: true)
+             )
+    end)
   end
 end
