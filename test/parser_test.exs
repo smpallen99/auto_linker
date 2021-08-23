@@ -86,6 +86,7 @@ defmodule AutoLinker.ParserTest do
       "http://blog.example.com",
       "http://www.example.com/product",
       "http://www.example.com/products?id=1&page=2",
+      "http://www.example.com/products?q=summer%20shirt",
       "http://www.example.com#up",
       "http://255.255.255.255",
       "http://www.site.com:8008"
@@ -107,6 +108,7 @@ defmodule AutoLinker.ParserTest do
       "example.ca",
       "example.tv",
       "example.com:999?one=one",
+      "example.com:999?one=one%20two",
       "255.255.255.255",
       "255.255.255.255:3000?one=1&two=2"
     ]
