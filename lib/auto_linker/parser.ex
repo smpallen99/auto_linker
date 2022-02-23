@@ -25,39 +25,27 @@ defmodule AutoLinker.Parser do
       ~s{, work <a href="#" class="phone-number" data-phone="5555555555">(555) 555-5555</a>}
   """
 
-  # @invalid_url ~r/\.\.+/
-  @invalid_url ~r/(\.\.+)|(^(\d+\.){1,2}\d+$)/
+  @hash_re ~S"(#[^\s\?&=]*)?"
+  @ip_re ~S"([0-9]{1,3}(?:\.[0-9]{1,3}){3}))"
+  @query_re ~S"(\?[^\s=&\?]+=[^\s&=\?]+(?:&[^\s=&\?]+=[^\s=&\?]+)*)?$"
+  @routes_re ~S"(\/[^\s\?=&]+)*"
+  @port_re ~S/(:[0-9]{1,5})?/
+  @url_re ~S"(([\w\-]+(?:\.[\w\-]+)*\.[A-Za-z]{2,6})|" <> @ip_re <> @hash_re
+  @match_re @url_re <> @port_re <> @routes_re <> @query_re
 
-  @match_url ~r{^[\w\.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$}
-  @match_scheme ~r{^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$}
+  @match_url Regex.compile!("^" <> @match_re)
+  @match_scheme Regex.compile!(~S"^(?:http(s)?:\/\/)?" <> @match_re)
 
   @match_phone ~r"((?:x\d{2,7})|(?:(?:\d{1,3}[\s\-.]?)?(?:\+?1\s?(?:[.-]\s?)?)?(?:\(\s?(?:[2-9]1[02-9]|[2-9][02-8]1|[2-9][02-8][02-9])\s?\)|(?:[2-9]1[02-9]|[2-9][02-8]1|[2-9][02-8][02-9]))\s?(?:[.-]\s?)?)(?:[2-9]1[02-9]|[2-9][02-9]1|[2-9][02-9]{2})\s?(?:[.-]\s?)?(?:[0-9]{4}))"
 
-  @default_opts ~w(url)a
+  def match_url, do: @match_url
+  def match_scheme, do: @match_scheme
 
   def parse(text, opts \\ %{})
   def parse(text, list) when is_list(list), do: parse(text, Enum.into(list, %{}))
 
   def parse(text, opts) do
-    config =
-      :auto_linker
-      |> Application.get_env(:opts, [])
-      |> Enum.into(%{})
-      |> Map.put(
-        :attributes,
-        Application.get_env(:auto_linker, :attributes, [])
-      )
-
-    opts =
-      Enum.reduce(@default_opts, opts, fn opt, acc ->
-        if is_nil(opts[opt]) and is_nil(config[opt]) do
-          Map.put(acc, opt, true)
-        else
-          acc
-        end
-      end)
-
-    opts = Map.merge(config, opts)
+    options = parse_options(opts)
 
     text
     |> split_code_blocks()
@@ -66,7 +54,7 @@ defmodule AutoLinker.Parser do
         [block | acc]
 
       block, acc ->
-        [do_parse(block, opts) | acc]
+        [do_parse(block, options) | acc]
     end)
     |> Enum.join("")
   end
@@ -179,7 +167,7 @@ defmodule AutoLinker.Parser do
 
   def check_and_link(buffer, scheme, opts) do
     buffer
-    |> is_url?(scheme)
+    |> is_url?(scheme, opts)
     |> link_url(buffer, opts)
   end
 
@@ -190,21 +178,13 @@ defmodule AutoLinker.Parser do
   end
 
   @doc false
-  def is_url?(buffer, true) do
-    if Regex.match?(invalid_url_re(), buffer) do
-      false
-    else
-      Regex.match?(match_scheme_re(), buffer)
-    end
-  end
+  def is_url?(buffer, true), do: Regex.match?(match_scheme_re(), buffer)
+  def is_url?(buffer, _), do: Regex.match?(match_url_re(), buffer)
 
-  def is_url?(buffer, _) do
-    if Regex.match?(invalid_url_re(), buffer) do
-      false
-    else
-      Regex.match?(match_url_re(), buffer)
-    end
-  end
+  @doc false
+  def is_url?(buffer, true, %{match_scheme_re: re}), do: Regex.match?(re, buffer)
+  def is_url?(buffer, _, %{match_url_re: re}), do: Regex.match?(re, buffer)
+  def is_url?(buffer, scheme, _), do: is_url?(buffer, scheme)
 
   @doc false
   def match_phone(buffer) do
@@ -214,26 +194,20 @@ defmodule AutoLinker.Parser do
     end
   end
 
-  defp invalid_url_re do
-    :one_dialer
-    |> Application.get_env(:invalid_url_re, @invalid_url)
-    |> compile_re()
-  end
-
   defp match_scheme_re do
-    :one_dialer
+    :auto_linker
     |> Application.get_env(:match_scheme_re, @match_scheme)
     |> compile_re()
   end
 
   defp match_url_re do
-    :one_dialer
+    :auto_linker
     |> Application.get_env(:match_url_re, @match_url)
     |> compile_re()
   end
 
   defp match_phone_re do
-    :one_dialer
+    :auto_linker
     |> Application.get_env(:match_phone_re, @match_phone)
     |> compile_re()
   end
@@ -280,5 +254,27 @@ defmodule AutoLinker.Parser do
 
   defp split_code_blocks(<<ch::8>> <> rest, [buff | acc], in_block) do
     split_code_blocks(rest, [buff <> <<ch::8>> | acc], in_block)
+  end
+
+  defp parse_options(opts) do
+    Map.merge(
+      %{
+        match_scheme_re: match_scheme_re(),
+        match_url_re: match_url_re(),
+        match_phone_re: match_phone_re()
+      },
+      Map.merge(default_options(), opts)
+    )
+  end
+
+  defp default_options do
+    :auto_linker
+    |> Application.get_env(:opts, [])
+    |> Enum.into(%{})
+    |> Map.put_new(:url, true)
+    |> Map.put(
+      :attributes,
+      Application.get_env(:auto_linker, :attributes, [])
+    )
   end
 end

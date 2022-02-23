@@ -22,6 +22,11 @@ defmodule AutoLinkerTest do
              "<a href='http://google.com' class='auto-linker' target='_blank' rel='noopener noreferrer'>google.com</a>"
   end
 
+  test "non link" do
+    assert AutoLinker.link("test-1.0.0-1") == "test-1.0.0-1"
+    assert AutoLinker.link("v4.0") == "v4.0"
+  end
+
   test "markdown" do
     assert AutoLinker.link("[google.com](http://google.com)", markdown: true) ==
              "<a href='http://google.com' class='auto-linker' target='_blank' rel='noopener noreferrer'>google.com</a>"
