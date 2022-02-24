@@ -31,7 +31,7 @@ defmodule AutoLinker.Parser do
   @routes_re ~S"(\/[^\s\?=&]+)*"
   @port_re ~S/(:[0-9]{1,5})?/
   @url_re ~S"(([\w\-]+(?:\.[\w\-]+)*\.[A-Za-z]{2,6})|" <> @ip_re <> @hash_re
-  @match_re @url_re <> @port_re <> @routes_re <> @query_re
+  @match_re @url_re <> @port_re <> @routes_re <> ~S"\/?" <> @query_re
 
   @match_url Regex.compile!("^" <> @match_re)
   @match_scheme Regex.compile!(~S"^(?:http(s)?:\/\/)?" <> @match_re)

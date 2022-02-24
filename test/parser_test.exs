@@ -116,7 +116,9 @@ defmodule AutoLinker.ParserTest do
       "http://www.example.com/products?id=1&page=2",
       "http://www.example.com#up",
       "http://255.255.255.255",
-      "http://www.site.com:8008"
+      "http://www.site.com:8008",
+      "http://www.example.com/products?q=summer%20shirt",
+      "http://google.foobar.com/"
     ]
 
   def invalid_scheme_urls,
@@ -141,7 +143,9 @@ defmodule AutoLinker.ParserTest do
       "example.com#test",
       "example.com/test#",
       "example.com/test#test",
-      "example.com/test.php"
+      "example.com/test.php",
+      "example.com:999?one=one%20two",
+      "google.foobar.com/"
     ]
 
   def invalid_non_scheme_urls,
