@@ -35,11 +35,9 @@ defmodule AutoLinker.Builder do
     if cls = Map.get(opts, :class, "auto-linker"), do: [{:class, cls} | attrs], else: attrs
   end
 
-  defp build_attrs(attrs, url, _opts, :scheme) do
-    if String.starts_with?(url, ["http://", "https://"]),
-      do: [{:href, url} | attrs],
-      else: [{:href, "http://" <> url} | attrs]
-  end
+  defp build_attrs(attrs, "http://" <> _ = url, _opts, :scheme), do: [{:href, url} | attrs]
+  defp build_attrs(attrs, "https://" <> _ = url, _opts, :scheme), do: [{:href, url} | attrs]
+  defp build_attrs(attrs, url, _opts, :scheme), do: [{:href, "http://" <> url} | attrs]
 
   defp format_url(attrs, url, opts) do
     url =
@@ -110,15 +108,16 @@ defmodule AutoLinker.Builder do
   end
 
   def format_phone_link(number, original, opts) do
-    tag = opts[:tag] || "a"
-    class = opts[:class] || "phone-number"
-    data_phone = opts[:data_phone] || "data-phone"
-    attrs = format_attributes(opts[:attributes] || [])
-    href = opts[:href] || "#"
-
-    ~s'<#{tag} href="#{href}" class="#{class}" #{data_phone}="#{number}"#{attrs}>#{original}</#{
-      tag
-    }>'
+    format_node(
+      opts[:tag] || "a",
+      [
+        format_attr(" href", opts[:href] || "#"),
+        format_attr(" class", opts[:class] || "phone-number"),
+        format_attr(" " <> (opts[:data_phone] || "data-phone"), number),
+        format_attributes(opts[:attributes] || [])
+      ],
+      original
+    )
   end
 
   defp format_attributes(attrs) do
@@ -126,4 +125,10 @@ defmodule AutoLinker.Builder do
       acc <> ~s' #{name}="#{value}"'
     end)
   end
+
+  defp format_attr(name, value), do: [name, ?=, format_quoted(value)]
+  defp format_quoted(value), do: [?", value, ?"]
+
+  defp format_node(tag, attrs, contents),
+    do: to_string([?<, tag, attrs, ?>, contents, "</", tag, ?>])
 end
