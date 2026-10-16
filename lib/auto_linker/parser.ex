@@ -173,7 +173,7 @@ defmodule AutoLinker.Parser do
 
   def check_and_link_phone(buffer, _, opts) do
     buffer
-    |> match_phone
+    |> match_phone()
     |> link_phone(buffer, opts)
   end
 
